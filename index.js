@@ -7,6 +7,9 @@ var s3Download = require('lambduh-get-s3-object');
 var upload = require('lambduh-put-s3-object');
 var downloadFile = require('lambduh-download-file');
 
+var WAV_FOLDER = '/tmp/wav/'
+var MP3_FOLDER = '/tmp/mp3/'
+
 process.env['PATH'] = process.env['PATH'] + ':/tmp/:' + process.env['LAMBDA_TASK_ROOT']
 
 exports.handler = function(event, context) {
@@ -19,8 +22,9 @@ exports.handler = function(event, context) {
 
   //create /tmp/pngs/
   .then(function(event) {
+    m
     return execute(event, {
-      shell: 'mkdir -p /tmp/pngs/; mkdir -p /tmp/renamed-pngs/;',
+      shell: 'mkdir -p '+WAV_FOLDER+'; mkdir -p /tmp/renamed-pngs/;',
       logOutput: true
     })
   })
@@ -28,29 +32,31 @@ exports.handler = function(event, context) {
   //download pngs
   .then(function(event) {
     if (event.srcUrl) {
-      event.filepath = '/tmp/pngs/' + path.basename(event.srcUrl);
+      event.filepath = '/tmp/wav/' + path.basename(event.srcUrl);
       event.url = event.srcUrl;
       return downloadFile(event);
     } else {
-      var def = Q.defer();
-
-      var promises = [];
-      event.srcKeys.forEach(function(key) {
-        promises.push(s3Download(event, {
-          srcBucket: event.srcBucket,
-          srcKey: key,
-          downloadFilepath: '/tmp/pngs/' + path.basename(key)
-        }))
-      });
-
-      Q.all(promises)
-        .then(function(event) {
-          def.resolve(event[0]);
-        })
-        .fail(function(err) {
-          def.reject(err);
-        });
-      return def.promise;
+      console.log('No srcURl Passed');
+      context.done(null, 'No srcURl Passed');
+      // var def = Q.defer();
+      //
+      // var promises = [];
+      // event.srcKeys.forEach(function(key) {
+      //   promises.push(s3Download(event, {
+      //     srcBucket: event.srcBucket,
+      //     srcKey: key,
+      //     downloadFilepath: '/tmp/pngs/' + path.basename(key)
+      //   }))
+      // });
+      //
+      // Q.all(promises)
+      //   .then(function(event) {
+      //     def.resolve(event[0]);
+      //   })
+      //   .fail(function(err) {
+      //     def.reject(err);
+      //   });
+      // return def.promise;
     }
   })
 
