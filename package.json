@@ -14,6 +14,7 @@
     "lambduh-gulp": "^0.1.0"
   },
   "dependencies": {
+    "chai": "^3.5.0",
     "lambduh-download-file": "^0.1.1",
     "lambduh-execute": "^1.3.0",
     "lambduh-get-s3-object": "^1.1.0",

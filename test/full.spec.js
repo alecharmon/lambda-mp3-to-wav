@@ -26,7 +26,11 @@ describe('timelapse handler', function() {
 
   it.only('should call .done() when things go well', function(done) {
     this.timeout(30000);
-    var event = {};
+    var event = {
+      srcUrl   : 'http://www.thesoundarchive.com/starwars/star-wars-theme-song.mp3',
+      dstBucket: 'bleh',
+      dstKey: 'bleh'
+    };
     var context = {
       done: function(err, message) {
         if (err || message) {

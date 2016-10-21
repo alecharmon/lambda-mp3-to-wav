@@ -1,6 +1,6 @@
-# lambda-pngs-to-mp4
+# lambda-mp3-url-to-wav
 
-Convert a slew of pngs into an mp4
+Download a mp3 and convert into an mp4
 
 # Usage
 
@@ -17,10 +17,11 @@ Invoke this function like any lambda function, as documented in the aws sdk.
 
 ## required
 
-- `srcBucket` - S3 bucket with the pngs
-- `srcKeys` - Array of keys to download from the srcBucket
-- `dstBucket` - S3 bucket to dump the mp4
-- `dstKey` - Key to upload the mp4 to
+- `srcUrl` - mp3 Url to download and convert
+- `dstBucket` - S3 bucket to dump the wav
+
+
+
 
 ## optional
 

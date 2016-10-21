@@ -14,83 +14,40 @@ process.env['PATH'] = process.env['PATH'] + ':/tmp/:' + process.env['LAMBDA_TASK
 
 exports.handler = function(event, context) {
   validate(event, {
-    "srcKeys": true,
-    "srcBucket": true,
-    "dstKey": true,
-    "dstBucket": true
+    "srcUrl": true,
+    "dstBucket": true,
+    "dstKey": true
   })
 
   //create /tmp/pngs/
   .then(function(event) {
-    m
     return execute(event, {
-      shell: 'mkdir -p '+WAV_FOLDER+'; mkdir -p /tmp/renamed-pngs/;',
+      shell: 'mkdir -p '+MP3_FOLDER+'; mkdir -p '+WAV_FOLDER+';',
+      logOutput: true
+    })
+    return execute(event, {
+      shell: 'ls',
       logOutput: true
     })
   })
 
-  //download pngs
+  //download mp3
   .then(function(event) {
-    if (event.srcUrl) {
-      event.filepath = '/tmp/wav/' + path.basename(event.srcUrl);
-      event.url = event.srcUrl;
-      return downloadFile(event);
-    } else {
-      console.log('No srcURl Passed');
-      context.done(null, 'No srcURl Passed');
-      // var def = Q.defer();
-      //
-      // var promises = [];
-      // event.srcKeys.forEach(function(key) {
-      //   promises.push(s3Download(event, {
-      //     srcBucket: event.srcBucket,
-      //     srcKey: key,
-      //     downloadFilepath: '/tmp/pngs/' + path.basename(key)
-      //   }))
-      // });
-      //
-      // Q.all(promises)
-      //   .then(function(event) {
-      //     def.resolve(event[0]);
-      //   })
-      //   .fail(function(err) {
-      //     def.reject(err);
-      //   });
-      // return def.promise;
-    }
+    event.filepath = MP3_FOLDER + path.basename(event.srcUrl);
+    event.filename = path.basename(event.srcUrl).split('.')[0]+'.wav';
+    event.url = event.srcUrl;
+    return downloadFile(event);
   })
 
-  //rename, mv pngs
-  .then(function(event) {
-
-    if (event.srcUrl) {
-      return execute(event, {
-        bashScript: '/var/task/multiply-endcard',
-        bashParams: [
-          '/tmp/pngs/' + path.basename(event.srcUrl), // input file (endcard)
-          '/tmp/renamed-pngs/' //output dir
-        ],
-        logOutput: true
-      })
-    } else {
-      return execute(event, {
-        bashScript: '/var/task/rename-pngs',
-        bashParams: [
-          '/tmp/pngs/*.png',// input files
-          '/tmp/renamed-pngs/'//output dir
-        ],
-        logOutput: true
-      })
-    }
-  })
+  //rename, mv png
 
   //convert pngs to mp4
   .then(function(event) {
     return execute(event, {
-      bashScript: '/var/task/files-to-mp4',
+      bashScript: 'bin/mp3-to-wav',
       bashParams: [
-        '/tmp/renamed-pngs/%04d.png',//input files
-        '/tmp/video.mp4'//output filename
+        MP3_FOLDER+path.basename(event.srcUrl),//input files
+        WAV_FOLDER+event.filename//output filename
       ],
       logOutput: true
     })
@@ -101,14 +58,14 @@ exports.handler = function(event, context) {
     return upload(event, {
       dstBucket: event.dstBucket,
       dstKey: event.dstKey,
-      uploadFilepath: '/tmp/video.mp4'
+      uploadFilepath: WAV_FOLDER+event.filename
     })
   })
 
   //clean up
   .then(function(event) {
     return execute(event, {
-      shell: "rm -f /tmp/pngs/*; rm -f /tmp/renamed-pngs/*;"
+      shell: 'rm -f '+WAV_FOLDER+'*; rm -f '+MP3_FOLDER+'*;'
     })
   })
 
