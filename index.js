@@ -44,7 +44,7 @@ exports.handler = function(event, context) {
   //convert pngs to mp4
   .then(function(event) {
     return execute(event, {
-      bashScript: 'bin/mp3-to-wav',
+      bashScript: '/var/task/mp3-to-wav',
       bashParams: [
         MP3_FOLDER+path.basename(event.srcUrl),//input files
         WAV_FOLDER+event.filename//output filename
@@ -53,7 +53,7 @@ exports.handler = function(event, context) {
     })
   })
 
-  //upload mp4
+  //upload wav
   .then(function(event) {
     return upload(event, {
       dstBucket: event.dstBucket,
