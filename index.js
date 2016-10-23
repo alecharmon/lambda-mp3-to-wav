@@ -25,45 +25,40 @@ exports.handler = function(event, context) {
       shell: 'mkdir -p '+MP3_FOLDER+'; mkdir -p '+WAV_FOLDER+';',
       logOutput: true
     })
-    return execute(event, {
-      shell: 'ls',
-      logOutput: true
-    })
   })
 
   //download mp3
   .then(function(event) {
-    event.filepath = MP3_FOLDER + path.basename(event.srcUrl);
-    event.filename = path.basename(event.srcUrl).split('.')[0]+'.wav';
+    event.filepath = './' + path.basename(event.srcUrl);
     event.url = event.srcUrl;
     return downloadFile(event);
   })
 
-  //rename, mv png
 
-  //convert pngs to mp4
+  //convert to
   .then(function(event) {
+    var filename_wo_ext = path.basename(event.srcUrl).split('.')[0];
+    event.wav_filename = filename_wo_ext +'.wav';
     return execute(event, {
-      bashScript: 'bin/mp3-to-wav',
-      bashParams: [
-        MP3_FOLDER+path.basename(event.srcUrl),//input files
-        WAV_FOLDER+event.filename//output filename
-      ],
+      shell: './ffmpeg -i '+event.filepath +' -acodec pcm_u8 -ar 22050 '+event.wav_filename+';',
       logOutput: true
     })
   })
-
-  //upload mp4
-  .then(function(event) {
-    return upload(event, {
-      dstBucket: event.dstBucket,
-      dstKey: event.dstKey,
-      uploadFilepath: WAV_FOLDER+event.filename
-    })
-  })
+  //upload wav
+  // .then(function(event) {
+  //   return upload(event, {
+  //     dstBucket: event.dstBucket,
+  //     dstKey: event.dstKey,
+  //     uploadFilepath: WAV_FOLDER+event.filename
+  //   })
+  // })
 
   //clean up
   .then(function(event) {
+    execute(event, {
+      shell: 'ls -la;',
+      logOutput: true
+    })
     return execute(event, {
       shell: 'rm -f '+WAV_FOLDER+'*; rm -f '+MP3_FOLDER+'*;'
     })
